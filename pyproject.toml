@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-feedback-kit"
+version = "0.1.0"
+description = "iOS uygulamaları için istek/şikayet (destek) modülü — Django app + DRF API + yönetim paneli"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "Django>=5.0",
+    "djangorestframework>=3.15",
+]
+
+[tool.setuptools]
+packages = ["feedback", "feedback.migrations"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+feedback = ["templates/feedback/*.html"]

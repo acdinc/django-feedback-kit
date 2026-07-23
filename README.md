@@ -1,0 +1,94 @@
+# django-feedback-kit
+
+iOS uygulamalarının backend'lerine takılan **istek / şikayet / hata bildirimi**
+modülü. Tek bir Django app'i; projeye özel hiçbir import içermez, tüm bağlantı
+noktaları `settings.FEEDBACK` üzerinden enjekte edilir.
+
+Durum: **v0.1.0 — kullanıcı API'si.** Yönetim paneli (`/support/`) bir sonraki sürümde.
+
+## Kurulum
+
+```bash
+pip install "django-feedback-kit @ git+https://github.com/<kullanici>/django-feedback-kit@v0.1.0"
+```
+
+`settings.py`:
+
+```python
+INSTALLED_APPS += ["feedback"]
+
+FEEDBACK = {
+    "APP_NAME": "Coparoo",
+    # (user, title, body, data) imzalı fonksiyon — ekip cevabı yazınca çağrılır.
+    # Tanımsız bırakılırsa bildirim gönderilmez, modül yine çalışır.
+    "NOTIFIER": "apps.notifications.service.notify_user",
+    "MAX_OPEN_TICKETS": 5,     # aynı anda açık talep sınırı
+    "CREATE_RATE": "10/hour",  # kullanıcı başına talep açma hızı
+    "REPLY_RATE": "60/hour",   # kullanıcı başına yanıt yazma hızı
+}
+```
+
+API kökünüzün altına bağlayın:
+
+```python
+path("support/", include("feedback.urls_api")),   # → /api/support/tickets/
+```
+
+Sonra `manage.py migrate`.
+
+## Uçlar
+
+| Metot | Yol | Ne yapar |
+|---|---|---|
+| `GET` | `/api/support/tickets/` | Kullanıcının talepleri (cursor sayfalama, `unread_count`, `last_message`) |
+| `POST` | `/api/support/tickets/` | Yeni talep: `kind`, `subject`, `body` + cihaz meta verisi |
+| `GET` | `/api/support/tickets/{id}/` | Talep + tüm yazışma |
+| `POST` | `/api/support/tickets/{id}/reply/` | Kullanıcının yanıtı (yanıtlanmış/kapalı talebi yeniden açar) |
+| `POST` | `/api/support/tickets/{id}/mark-read/` | Ekip mesajlarını okundu işaretler |
+
+`kind`: `bug` · `request` · `complaint` · `question`
+`status`: `open` → `in_progress` → `answered` → `closed`
+
+Örnek oluşturma gövdesi:
+
+```json
+{
+  "kind": "complaint",
+  "subject": "Bildirimler gelmiyor",
+  "body": "Üç gündür hiç bildirim almıyorum.",
+  "app_version": "1.2.0",
+  "os_version": "18.2",
+  "device_model": "iPhone15,2",
+  "locale": "tr-TR"
+}
+```
+
+Cihaz alanlarını istemci otomatik doldurur; kullanıcı yazmaz. Bu alanlar
+yalnızca sürüm/model/dil taşır — kişisel veri konmaz.
+
+## Tasarım kararları
+
+- **Queryset izolasyonu:** tüm uçlar `user=request.user` ile daraltılır;
+  başkasının talebi 404 döner (IDOR). `user` alanı istemciden yazılamaz.
+- **Append-only yazışma:** `TicketMessage` düzenlenemez/silinemez; tek istisna
+  `read_at`. Şikayet kaydı sonradan değiştirilemesin diye.
+- **Silme yok:** talep ve mesajlar için DELETE ucu açılmamıştır.
+- **Kötüye kullanım freni:** kullanıcı başına hız sınırı + açık talep sayısı
+  sınırı. Oranlar DRF'nin global sözlüğüne değil `FEEDBACK`e yazılır; kuran
+  proje ayarı unutursa throttle sessizce kapanmaz.
+- **Bildirim izole:** push başarısız olursa yazışma etkilenmez (hata loglanır).
+- **Kendi sayfalaması:** modül `CursorPagination`'ı kendi taşır, projenin DRF
+  varsayılanına bağımlı değildir.
+
+## Test
+
+```bash
+manage.py test feedback
+```
+
+Projenin `manage.py test` çıktısına dahil etmek için proje köküne şu dosyayı
+koyun (`tests_feedback.py`):
+
+```python
+from feedback.tests import *  # noqa
+```
