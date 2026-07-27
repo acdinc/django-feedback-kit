@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-feedback-kit"
-version = "0.2.0"
+version = "0.3.0"
 description = "iOS uygulamaları için istek/şikayet (destek) modülü — Django app + DRF API + yönetim paneli"
 readme = "README.md"
 requires-python = ">=3.11"

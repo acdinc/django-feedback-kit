@@ -35,6 +35,17 @@ DEFAULTS = {
     # istatistik kartları. () -> list[dict(label, value, hint?)] imzalı
     # çağrılabilir ya da noktalı yolu. Tanımsızsa yalnızca talep kartları görünür.
     "DASHBOARD_STATS": None,
+    # --- Telegram (yönetici bildirimi + Telegram'dan cevap) --------------
+    # Üçü de tanımlıysa: yeni talep bota düşer; o mesaja verdiğin reply talebe
+    # ekip cevabı olarak işlenir. Boşsa Telegram tümüyle devre dışıdır.
+    # KODA YAZILMAZ — projede os.environ'dan okunur.
+    "TELEGRAM_BOT_TOKEN": "",
+    # Bildirimlerin gideceği ve yanıtların KABUL EDİLECEĞİ sohbet (kişisel
+    # chat ya da grup) kimliği. Başka sohbetten gelen mesajlar yok sayılır.
+    "TELEGRAM_CHAT_ID": "",
+    # Webhook'u doğrulayan paylaşılan sır (setWebhook'taki secret_token ile
+    # aynı). Tanımsızsa webhook ucu TAMAMEN KAPALIDIR (fail-closed).
+    "TELEGRAM_WEBHOOK_SECRET": "",
 }
 
 

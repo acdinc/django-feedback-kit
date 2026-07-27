@@ -4,7 +4,7 @@ iOS uygulamalarının backend'lerine takılan **istek / şikayet / hata bildirim
 modülü. Tek bir Django app'i; projeye özel hiçbir import içermez, tüm bağlantı
 noktaları `settings.FEEDBACK` üzerinden enjekte edilir.
 
-Durum: **v0.2.0 — kullanıcı API'si + staff yönetim paneli.** iOS istemci paketi (SupportKit) sırada.
+Durum: **v0.3.0 — kullanıcı API'si + staff panel + Telegram (bildirim & cevap).**
 
 ## Kurulum
 
@@ -112,6 +112,37 @@ yalnızca sürüm/model/dil taşır — kişisel veri konmaz.
 - **Kendi sayfalaması:** modül `CursorPagination`'ı kendi taşır, projenin DRF
   varsayılanına bağımlı değildir.
 
+## Telegram (yönetici bildirimi + Telegram'dan cevap)
+
+Yeni talep gelince yöneticinin Telegram sohbetine mesaj düşer; o mesaja **reply**
+yazınca cevap talebe ekip mesajı olarak işlenir (durum "yanıtlandı" + kullanıcıya
+push). Üç ayar da tanımlı değilse Telegram tümüyle kapalıdır.
+
+```python
+FEEDBACK.update({
+    "TELEGRAM_BOT_TOKEN": os.environ["TELEGRAM_BOT_TOKEN"],
+    "TELEGRAM_CHAT_ID": os.environ["TELEGRAM_CHAT_ID"],
+    "TELEGRAM_WEBHOOK_SECRET": os.environ["TELEGRAM_WEBHOOK_SECRET"],
+})
+```
+
+Kurulum:
+1. @BotFather'dan bot oluştur → token.
+2. Bota bir mesaj at, sonra `https://api.telegram.org/bot<token>/getUpdates`
+   çıktısındaki `chat.id`'yi al.
+3. Rastgele bir `TELEGRAM_WEBHOOK_SECRET` üret; üç değeri sunucu env'ine koy.
+4. Webhook'u kaydet (secret ile):
+   ```
+   curl "https://api.telegram.org/bot<token>/setWebhook" \
+     -d url="https://<host>/api/support/telegram/webhook/" \
+     -d secret_token="<TELEGRAM_WEBHOOK_SECRET>"
+   ```
+
+Güvenlik: webhook JWT değil — Telegram'ın `secret_token`'ı ile doğrulanır; sır
+tanımsızsa uç 404 (fail-closed), uyuşmazsa 403. Yalnızca yapılandırılmış sohbetten
+gelen, bir bot mesajına yanıt olan metinler işlenir. Gizlilik: Telegram'a yalnızca
+destek talebinin kendi içeriği taşınır (yönetici cevap yazabilmek için görür).
+
 ## Test
 
 ```bash
@@ -124,4 +155,5 @@ koyun (`tests_feedback.py`):
 ```python
 from feedback.tests import *            # noqa  (API testleri)
 from feedback.tests_dashboard import *  # noqa  (panel testleri; URL include gerektirir)
+from feedback.tests_telegram import *   # noqa  (Telegram testleri)
 ```

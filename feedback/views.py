@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from . import services
+from . import services, telegram
 from .models import Ticket, TicketMessage
 from .pagination import TicketCursorPagination
 from .serializers import (
@@ -57,6 +57,9 @@ class TicketViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ticket = serializer.save()
+        # Yöneticiye Telegram bildirimi (yapılandırılmışsa; değilse sessiz no-op).
+        # Hata talep oluşturmayı BOZMAZ (telegram içinde yutulur/loglanır).
+        telegram.notify_new_ticket(ticket)
         # Yanıtta ayrıntı biçimini döndür: istemci hemen yazışma ekranını açabilir
         detail = TicketDetailSerializer(ticket, context=self.get_serializer_context())
         return Response(detail.data, status=status.HTTP_201_CREATED)

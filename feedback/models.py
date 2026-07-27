@@ -127,3 +127,28 @@ class TicketMessage(models.Model):
 
     def delete(self, *args, **kwargs):
         raise PermissionError("Destek mesajı silinemez (append-only).")
+
+
+class TelegramLink(models.Model):
+    """Giden bir Telegram bildirimini talebe bağlar.
+
+    Yönetici bota gelen bildirime Telegram'da REPLY yazınca, gelen güncellemenin
+    `reply_to_message.message_id`'si bu tablodan talebe çözülür — böylece cevap
+    doğru talebe ekip mesajı olarak eklenir.
+    """
+
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="telegram_links")
+    chat_id = models.CharField(max_length=64)
+    message_id = models.BigIntegerField()
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["chat_id", "message_id"], name="uniq_telegram_chat_message"
+            )
+        ]
+        indexes = [models.Index(fields=["chat_id", "message_id"])]
+
+    def __str__(self):
+        return f"tg({self.chat_id}:{self.message_id}) → #{self.ticket_id}"
