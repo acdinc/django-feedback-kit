@@ -4,7 +4,7 @@ iOS uygulamalarının backend'lerine takılan **istek / şikayet / hata bildirim
 modülü. Tek bir Django app'i; projeye özel hiçbir import içermez, tüm bağlantı
 noktaları `settings.FEEDBACK` üzerinden enjekte edilir.
 
-Durum: **v0.1.0 — kullanıcı API'si.** Yönetim paneli (`/support/`) bir sonraki sürümde.
+Durum: **v0.2.0 — kullanıcı API'si + staff yönetim paneli.** iOS istemci paketi (SupportKit) sırada.
 
 ## Kurulum
 
@@ -28,13 +28,45 @@ FEEDBACK = {
 }
 ```
 
-API kökünüzün altına bağlayın:
+İki grup URL bağlanır — biri mobil istemci için (API kökünün altına), biri
+yönetim paneli için (proje kökünün altına):
 
 ```python
-path("support/", include("feedback.urls_api")),   # → /api/support/tickets/
+# config/api.py  (DRF router'ının olduğu yer)
+path("support/", include("feedback.urls_api")),        # → /api/support/tickets/
+
+# config/urls.py  (proje kökü)
+path("support/", include("feedback.urls_dashboard")),  # → /support/  (staff paneli)
 ```
 
 Sonra `manage.py migrate`.
+
+## Yönetim paneli (`/support/`)
+
+Staff kullanıcılar için Django template paneli — ayrı frontend/deploy yok,
+backend ile aynı sunucuda çalışır. Erişim `staff_member_required` ile Django
+admin girişine bağlıdır (ayrı kimlik doğrulama yok).
+
+- **Özet** (`/support/`): istatistik kartları + bekleyen talepler.
+- **Talepler** (`/support/tickets/`): durum/tür/konu filtreli liste, sayfalama.
+- **Detay** (`/support/tickets/<id>/`): cihaz meta verisi, yazışma, cevap kutusu
+  (durum 'yanıtlandı' + kullanıcıya push) ve durum değiştirme.
+
+İstatistik kartları iki kaynaktan gelir: modülün her projede aynı hesapladığı
+**çekirdek talep sayıları** (açık talep, son 7 gün, toplam, ort. ilk yanıt) ve
+projeye özel **enjekte edilen kartlar** (`FEEDBACK["DASHBOARD_STATS"]`):
+
+```python
+# config/feedback_stats.py
+def dashboard_stats():
+    return [
+        {"label": "Toplam kullanıcı", "value": User.objects.count()},
+        {"label": "Premium aile", "value": 87, "hint": "aktif abonelik"},
+    ]
+
+# settings.py
+FEEDBACK["DASHBOARD_STATS"] = "config.feedback_stats.dashboard_stats"
+```
 
 ## Uçlar
 
@@ -90,5 +122,6 @@ Projenin `manage.py test` çıktısına dahil etmek için proje köküne şu dos
 koyun (`tests_feedback.py`):
 
 ```python
-from feedback.tests import *  # noqa
+from feedback.tests import *            # noqa  (API testleri)
+from feedback.tests_dashboard import *  # noqa  (panel testleri; URL include gerektirir)
 ```
