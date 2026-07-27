@@ -1,0 +1,40 @@
+{% extends "feedback/dashboard/base.html" %}
+{% block title %}Özet{% endblock %}
+{% block nav_overview %}active{% endblock %}
+
+{% block content %}
+  <h1>Özet</h1>
+
+  <div class="cards">
+    {% for c in cards %}
+      <div class="card {% if c.accent %}accent{% endif %}">
+        <div class="val">{{ c.value }}</div>
+        <div class="lbl">{{ c.label }}</div>
+        {% if c.hint %}<div class="hint">{{ c.hint }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <h1>Bekleyen talepler</h1>
+  {% if recent %}
+    <table>
+      <thead>
+        <tr><th>#</th><th>Konu</th><th>Tür</th><th>Durum</th><th>Kullanıcı</th><th>Son hareket</th></tr>
+      </thead>
+      <tbody>
+        {% for t in recent %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td><a href="{% url 'feedback-dashboard-detail' t.pk %}">{{ t.subject }}</a></td>
+            <td class="kind">{{ t.get_kind_display }}</td>
+            <td><span class="badge st-{{ t.status }}">{{ t.get_status_display }}</span></td>
+            <td>{{ t.user }}</td>
+            <td>{{ t.updated_at|timesince }} önce</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">Bekleyen talep yok. 🎉</div>
+  {% endif %}
+{% endblock %}

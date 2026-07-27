@@ -31,6 +31,10 @@ DEFAULTS = {
     # Aynı anda açık kalabilecek talep sayısı. Aşılırsa yeni talep 400 döner;
     # amaç aynı kullanıcının 50 talep açıp paneli boğmasını engellemek.
     "MAX_OPEN_TICKETS": 5,
+    # Panelde çekirdek talep kartlarının yanına eklenecek projeye özel
+    # istatistik kartları. () -> list[dict(label, value, hint?)] imzalı
+    # çağrılabilir ya da noktalı yolu. Tanımsızsa yalnızca talep kartları görünür.
+    "DASHBOARD_STATS": None,
 }
 
 

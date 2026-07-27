@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Destek{% endblock %} · {{ app_name }}</title>
+  <style>
+    :root{
+      --bg:#f6f7f9; --card:#ffffff; --ink:#1c2430; --muted:#6b7684;
+      --line:#e7eaee; --accent:#f5a623; --accent-ink:#8a5a00;
+      --accent-soft:#fff4e0; --green:#1a7f55; --red:#c0392b; --blue:#2d6cdf;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);
+      font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    a{color:var(--blue);text-decoration:none}
+    header.top{background:var(--card);border-bottom:1px solid var(--line);
+      padding:14px 22px;display:flex;align-items:center;gap:22px;position:sticky;top:0;z-index:10}
+    header.top .brand{font-weight:700;font-size:17px}
+    header.top .brand span{color:var(--accent)}
+    header.top nav{display:flex;gap:18px}
+    header.top nav a{color:var(--muted);font-weight:600;font-size:14px}
+    header.top nav a.active{color:var(--ink)}
+    header.top .spacer{margin-left:auto}
+    header.top .who{color:var(--muted);font-size:13px}
+    main{max-width:1000px;margin:24px auto;padding:0 22px}
+    h1{font-size:20px;margin:0 0 18px}
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:26px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+    .card.accent{background:var(--accent-soft);border-color:#f4dcae}
+    .card .val{font-size:26px;font-weight:700;letter-spacing:-.5px}
+    .card .lbl{color:var(--muted);font-size:13px;margin-top:2px}
+    .card .hint{color:var(--muted);font-size:11px;margin-top:6px;text-transform:uppercase;letter-spacing:.4px}
+    table{width:100%;border-collapse:collapse;background:var(--card);
+      border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:14px}
+    th{background:#fafbfc;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+    tr:last-child td{border-bottom:none}
+    tr.unread td:first-child{box-shadow:inset 3px 0 var(--accent)}
+    .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
+    .st-open{background:#fff4e0;color:var(--accent-ink)}
+    .st-in_progress{background:#e7f0ff;color:var(--blue)}
+    .st-answered{background:#e6f5ee;color:var(--green)}
+    .st-closed{background:#eef0f2;color:var(--muted)}
+    .kind{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+    .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:6px}
+    .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+    .filters select,.filters input,.btn{font:inherit;padding:8px 12px;border:1px solid var(--line);
+      border-radius:9px;background:var(--card)}
+    .btn{background:var(--accent);border-color:var(--accent);color:#3d2a00;font-weight:700;cursor:pointer}
+    .btn.ghost{background:var(--card);color:var(--ink);font-weight:600}
+    .msg{border-radius:12px;padding:6px 0;color:var(--muted);font-size:13px;margin:10px 0}
+    .msg.success{color:var(--green)} .msg.error{color:var(--red)}
+    .empty{color:var(--muted);text-align:center;padding:40px}
+    .pager{display:flex;gap:10px;justify-content:center;margin-top:18px;color:var(--muted)}
+    /* yazışma */
+    .thread{display:flex;flex-direction:column;gap:12px;margin:18px 0}
+    .bubble{max-width:78%;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card)}
+    .bubble .meta{font-size:11px;color:var(--muted);margin-top:6px}
+    .bubble.staff{align-self:flex-end;background:var(--accent-soft);border-color:#f4dcae}
+    .bubble.user{align-self:flex-start}
+    .bubble .body{white-space:pre-wrap;word-wrap:break-word}
+    .replybox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:8px}
+    .replybox textarea{width:100%;min-height:90px;font:inherit;border:1px solid var(--line);
+      border-radius:9px;padding:10px;resize:vertical}
+    .replyactions{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;flex-wrap:wrap}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin:12px 0}
+    .meta-grid div{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px}
+    .meta-grid .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">{{ app_name }} <span>destek</span></div>
+    <nav>
+      <a href="{% url 'feedback-dashboard-overview' %}" class="{% block nav_overview %}{% endblock %}">Özet</a>
+      <a href="{% url 'feedback-dashboard-list' %}" class="{% block nav_list %}{% endblock %}">Talepler</a>
+    </nav>
+    <div class="spacer"></div>
+    <div class="who">{{ request.user }} · <a href="/admin/logout/">çıkış</a></div>
+  </header>
+  <main>
+    {% if messages %}
+      {% for m in messages %}<div class="msg {{ m.tags }}">{{ m }}</div>{% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

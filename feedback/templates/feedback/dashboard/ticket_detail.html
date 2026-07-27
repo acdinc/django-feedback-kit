@@ -1,0 +1,59 @@
+{% extends "feedback/dashboard/base.html" %}
+{% block title %}Talep #{{ ticket.id }}{% endblock %}
+{% block nav_list %}active{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'feedback-dashboard-list' %}">← Talepler</a></p>
+
+  <h1>
+    #{{ ticket.id }} · {{ ticket.subject }}
+    <span class="badge st-{{ ticket.status }}">{{ ticket.get_status_display }}</span>
+  </h1>
+  <p class="kind">{{ ticket.get_kind_display }} · {{ ticket.user }} · {{ ticket.created_at|date:"d.m.Y H:i" }}</p>
+
+  {% if ticket.app_version or ticket.device_model or ticket.os_version or ticket.locale %}
+    <div class="meta-grid">
+      {% if ticket.app_version %}<div><div class="k">Uygulama</div>{{ ticket.app_version }}</div>{% endif %}
+      {% if ticket.os_version %}<div><div class="k">iOS</div>{{ ticket.os_version }}</div>{% endif %}
+      {% if ticket.device_model %}<div><div class="k">Cihaz</div>{{ ticket.device_model }}</div>{% endif %}
+      {% if ticket.locale %}<div><div class="k">Dil</div>{{ ticket.locale }}</div>{% endif %}
+    </div>
+  {% endif %}
+
+  <div class="thread">
+    {% for m in conversation %}
+      <div class="bubble {% if m.author_type == author_user %}user{% else %}staff{% endif %}">
+        <div class="body">{{ m.body }}</div>
+        <div class="meta">
+          {% if m.author_type == author_user %}Kullanıcı{% else %}Ekip{% endif %}
+          · {{ m.created_at|date:"d.m.Y H:i" }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="replybox">
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reply">
+      <textarea name="body" placeholder="Yanıtınızı yazın… (kullanıcıya bildirim gider)" required></textarea>
+      <div class="replyactions">
+        <span class="kind">Yanıt durumu 'Yanıtlandı' yapar</span>
+        <button class="btn" type="submit">Yanıtla</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="replyactions" style="margin-top:14px">
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="status">
+      <select name="status">
+        {% for val, label in statuses %}
+          <option value="{{ val }}" {% if val == ticket.status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn ghost" type="submit">Durumu güncelle</button>
+    </form>
+  </div>
+{% endblock %}

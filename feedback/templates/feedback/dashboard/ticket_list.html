@@ -1,0 +1,58 @@
+{% extends "feedback/dashboard/base.html" %}
+{% block title %}Talepler{% endblock %}
+{% block nav_list %}active{% endblock %}
+
+{% block content %}
+  <h1>Talepler</h1>
+
+  <form class="filters" method="get">
+    <input type="text" name="q" value="{{ query }}" placeholder="Konu ara…">
+    <select name="status">
+      <option value="">Tüm durumlar</option>
+      {% for val, label in statuses %}
+        <option value="{{ val }}" {% if val == cur_status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="kind">
+      <option value="">Tüm türler</option>
+      {% for val, label in kinds %}
+        <option value="{{ val }}" {% if val == cur_kind %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn ghost" type="submit">Filtrele</button>
+  </form>
+
+  {% if page.object_list %}
+    <table>
+      <thead>
+        <tr><th>#</th><th>Konu</th><th>Tür</th><th>Durum</th><th>Kullanıcı</th><th>Son hareket</th></tr>
+      </thead>
+      <tbody>
+        {% for t in page.object_list %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td><a href="{% url 'feedback-dashboard-detail' t.pk %}">{{ t.subject }}</a></td>
+            <td class="kind">{{ t.get_kind_display }}</td>
+            <td><span class="badge st-{{ t.status }}">{{ t.get_status_display }}</span></td>
+            <td>{{ t.user }}</td>
+            <td>{{ t.updated_at|timesince }} önce</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if page.has_other_pages %}
+      <div class="pager">
+        {% if page.has_previous %}
+          <a href="?q={{ query }}&status={{ cur_status }}&kind={{ cur_kind }}&page={{ page.previous_page_number }}">← önceki</a>
+        {% endif %}
+        <span>{{ page.number }} / {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}
+          <a href="?q={{ query }}&status={{ cur_status }}&kind={{ cur_kind }}&page={{ page.next_page_number }}">sonraki →</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty">Bu filtreye uyan talep yok.</div>
+  {% endif %}
+{% endblock %}
